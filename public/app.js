@@ -235,7 +235,8 @@ function buildWinnersCsv() {
 }
 
 function getWinnersExportFileName() {
-  const safeName = currentRaffle.name
+  const raffleName = currentRaffle && currentRaffle.name != null ? String(currentRaffle.name) : '';
+  const safeName = raffleName
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()

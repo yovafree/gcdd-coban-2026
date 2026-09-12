@@ -99,6 +99,7 @@ body {
 
 .winners-history { margin-top: 20px; text-align: left; }
 .winners-header { display: flex; justify-content: space-between; align-items: center; }
+.winners-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
 #winnersList { max-height: 200px; overflow-y: auto; padding-left: 20px; }
 
 /* ---------- Configuración ---------- */

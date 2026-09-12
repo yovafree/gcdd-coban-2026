@@ -77,6 +77,7 @@ function clearWheelUI() {
   document.getElementById('btnSpin').disabled = true;
   document.getElementById('participantList').innerHTML = '';
   document.getElementById('winnersList').innerHTML = '';
+  updateWinnersActions();
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
@@ -191,6 +192,12 @@ document.getElementById('configForm').addEventListener('submit', async (e) => {
 });
 
 // ================== Historial de ganadores ==================
+function updateWinnersActions() {
+  const hasWinners = Boolean(currentRaffle && currentRaffle.winners.length > 0);
+  document.getElementById('btnExportWinners').disabled = !hasWinners;
+  document.getElementById('btnResetWinners').disabled = !hasWinners;
+}
+
 function renderWinnersList() {
   const list = document.getElementById('winnersList');
   list.innerHTML = '';
@@ -200,7 +207,54 @@ function renderWinnersList() {
     li.textContent = `${w.name} — ${date}`;
     list.appendChild(li);
   });
+  updateWinnersActions();
 }
+
+function escapeCsvValue(value) {
+  const text = value == null ? '' : String(value);
+  return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+}
+
+function buildWinnersCsv() {
+  const rows = [
+    ['Rifa', 'Ganador', 'ID participante', 'Fecha ISO', 'Fecha local'],
+    ...currentRaffle.winners.map((winner) => [
+      currentRaffle.name,
+      winner.name,
+      winner.participantId,
+      winner.drawnAt,
+      new Date(winner.drawnAt).toLocaleString(),
+    ]),
+  ];
+
+  return '\uFEFF' + rows.map((row) => row.map(escapeCsvValue).join(',')).join('\n');
+}
+
+function getWinnersExportFileName() {
+  const safeName = currentRaffle.name
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+  return `${safeName || 'rifa'}-ganadores.csv`;
+}
+
+document.getElementById('btnExportWinners').addEventListener('click', () => {
+  if (!currentRaffle) return alert('Primero selecciona o crea una rifa');
+  if (currentRaffle.winners.length === 0) return alert('No hay ganadores para exportar');
+
+  const blob = new Blob([buildWinnersCsv()], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = getWinnersExportFileName();
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+});
 
 document.getElementById('btnResetWinners').addEventListener('click', async () => {
   if (!currentRaffle) return;

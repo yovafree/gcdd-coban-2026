@@ -192,8 +192,12 @@ document.getElementById('configForm').addEventListener('submit', async (e) => {
 });
 
 // ================== Historial de ganadores ==================
+function getCurrentWinners() {
+  return Array.isArray(currentRaffle && currentRaffle.winners) ? currentRaffle.winners : [];
+}
+
 function updateWinnersActions() {
-  const hasWinners = Boolean(currentRaffle && currentRaffle.winners.length > 0);
+  const hasWinners = getCurrentWinners().length > 0;
   document.getElementById('btnExportWinners').disabled = !hasWinners;
   document.getElementById('btnResetWinners').disabled = !hasWinners;
 }
@@ -201,7 +205,7 @@ function updateWinnersActions() {
 function renderWinnersList() {
   const list = document.getElementById('winnersList');
   list.innerHTML = '';
-  currentRaffle.winners.forEach((w) => {
+  getCurrentWinners().forEach((w) => {
     const li = document.createElement('li');
     const date = new Date(w.drawnAt).toLocaleTimeString();
     li.textContent = `${w.name} — ${date}`;
@@ -216,14 +220,14 @@ function escapeCsvValue(value) {
 }
 
 function buildWinnersCsv() {
+  const winners = getCurrentWinners();
   const rows = [
-    ['Rifa', 'Ganador', 'ID participante', 'Fecha ISO', 'Fecha local'],
-    ...currentRaffle.winners.map((winner) => [
+    ['Rifa', 'Ganador', 'ID participante', 'Fecha ISO'],
+    ...winners.map((winner) => [
       currentRaffle.name,
       winner.name,
       winner.participantId,
       winner.drawnAt,
-      new Date(winner.drawnAt).toLocaleString(),
     ]),
   ];
 
@@ -243,17 +247,20 @@ function getWinnersExportFileName() {
 
 document.getElementById('btnExportWinners').addEventListener('click', () => {
   if (!currentRaffle) return alert('Primero selecciona o crea una rifa');
-  if (currentRaffle.winners.length === 0) return alert('No hay ganadores para exportar');
+  if (getCurrentWinners().length === 0) return alert('No hay ganadores para exportar');
 
   const blob = new Blob([buildWinnersCsv()], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
-  link.href = url;
-  link.download = getWinnersExportFileName();
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  try {
+    link.href = url;
+    link.download = getWinnersExportFileName();
+    document.body.appendChild(link);
+    link.click();
+  } finally {
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
 });
 
 document.getElementById('btnResetWinners').addEventListener('click', async () => {

@@ -253,7 +253,7 @@ document.getElementById('btnExportWinners').addEventListener('click', () => {
   document.body.appendChild(link);
   link.click();
   link.remove();
-  URL.revokeObjectURL(url);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 });
 
 document.getElementById('btnResetWinners').addEventListener('click', async () => {

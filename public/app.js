@@ -219,6 +219,11 @@ function escapeCsvValue(value) {
   return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
 }
 
+function formatWinnerTimestamp(value) {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? String(value == null ? '' : value) : date.toISOString();
+}
+
 function buildWinnersCsv() {
   const winners = getCurrentWinners();
   const rows = [
@@ -227,7 +232,7 @@ function buildWinnersCsv() {
       currentRaffle.name,
       winner.name,
       winner.participantId,
-      winner.drawnAt,
+      formatWinnerTimestamp(winner.drawnAt),
     ]),
   ];
 
@@ -237,13 +242,13 @@ function buildWinnersCsv() {
 function getWinnersExportFileName() {
   const raffleName = currentRaffle && currentRaffle.name != null ? String(currentRaffle.name) : '';
   const safeName = raffleName
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
+    .normalize('NFKC')
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/[^\p{L}\p{N}]+/gu, '-')
     .replace(/^-+|-+$/g, '');
+  const suffix = currentRaffle && currentRaffle.id != null ? String(currentRaffle.id).slice(0, 8) : 'export';
 
-  return `${safeName || 'rifa'}-ganadores.csv`;
+  return `${safeName || 'rifa'}-${suffix}-ganadores.csv`;
 }
 
 document.getElementById('btnExportWinners').addEventListener('click', () => {

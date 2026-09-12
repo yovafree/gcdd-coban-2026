@@ -39,7 +39,10 @@
       <div class="winners-history">
         <div class="winners-header">
           <h3>Historial de ganadores</h3>
-          <button id="btnResetWinners" class="btn btn-ghost">Limpiar historial</button>
+          <div class="winners-actions">
+            <button id="btnExportWinners" class="btn btn-ghost" aria-label="Descargar historial de ganadores en formato CSV">Exportar CSV</button>
+            <button id="btnResetWinners" class="btn btn-ghost">Limpiar historial</button>
+          </div>
         </div>
         <ol id="winnersList"></ol>
       </div>
